@@ -1,9 +1,9 @@
 var discord = require('discord.js');
 var client = new discord.Client();
-var token = 'MjcxODQ1MDI5NTE1ODg2NTkz.C2NFpQ.tCyutpun-zbAlJi2NlmZd8j1v1k';
 var http = require('http');
 var fs = require('fs');
-var obj = JSON.parse(fs.readFileSync('applist.json', 'utf8'));
+var token = fs.readFileSync('saleBotToken.txt', 'utf8');
+var masterAppList = JSON.parse(fs.readFileSync('applist.json', 'utf8'));
 var numTimesFailed = 0;
 
 var reduceNumTimesFailed = setInterval(function() {
@@ -14,35 +14,13 @@ var reduceNumTimesFailed = setInterval(function() {
 }, 15000);
 
 client.on('ready', function() {
-	console.log('Sale bot logged in, updating applist');
-
-	// var httpParams = {
-	// 	host: 'api.steampowered.com',
-	// 	path: '/ISteamApps/GetAppList/v0001/'
-	// };
-
-	// http.request(httpParams, function(response) {
-	// 	var data = '';
-
-	// 	response.on('data', function (chunk) {
-	// 		data += chunk;
-	// 	});
-
-	// 	response.on('end', function () {
-	// 		try {
-	// 			fs.writeFileSync('applist.json', data);
-	// 		}
-	// 		catch (ex) {
-	// 			console.error(ex);
-	// 		}
-	// 	});
-	// }).end();
+	console.log('Sale bot logged in');
 });
 
 client.on('message', function(msg) {
 	var regexp = /^\!sale[^\w](.+)$/i;
 	var match = msg.content.match(regexp);
-	var applist = obj.applist.apps.app;
+	var list = masterAppList.applist.apps.app; // i wish valve could update their naming conventions so this isn't so clunky
 	var appid, gameTitle;
 
 	if(match == null) {
@@ -52,16 +30,16 @@ client.on('message', function(msg) {
 		gameTitle = match[1];
 	}
 
-	for(var i in applist) {
-		if(applist[i].name.indexOf(gameTitle) > -1) {
-			appid = applist[i].appid;
+	for(var i in list) {
+		if(list[i].name.indexOf(gameTitle) > -1) {
+			appid = list[i].appid;
 			break;
 		}
 	}
 
 	if(appid == null) {
 		if(numTimesFailed < 4) {
-			msg.reply('Game not found, try again');
+			msg.reply('Game not found, I am currently unable to ignore case; keep that in mind and try again');
 		}
 		else {
 			msg.reply('If you\'re going to keep making garbage requests, I won\'t help you');
@@ -79,14 +57,14 @@ client.on('message', function(msg) {
 	};
 
 	http.request(httpParams, function(response) {
-		var str = '';
+		var gameData = '';
 
 		response.on('data', function (chunk) {
-			str += chunk;
+			gameData += chunk;
 		});
 
 		response.on('end', function () {
-			var gameDetails = JSON.parse(str);
+			var gameDetails = JSON.parse(gameData);
 
 			if(gameDetails[appid].data != null && gameDetails[appid].data.price_overview != null) {
 				var initPrice = (gameDetails[appid].data.price_overview.initial / 100);
@@ -105,7 +83,9 @@ client.on('message', function(msg) {
 				}
 			}
 			else {
-				msg.reply('Something went wrong with your request, maybe that game is free or doesn\'t exist?');
+				msg.reply('\n\nCurrent price of ' + gameTitle + ': \*\*FREE\*\*\n' +
+						'\nDiscount percent: -:100:%' +
+						'\nhttp://store.steampowered.com/app/' + appid);
 			}
 		});
 	}).end();
@@ -120,5 +100,20 @@ client.login(token).then(function(token) {
 	})
 	.catch(function(err) {
 		console.log('something went wrong logging in');
-		console.log(err);
+		console.error(err);
 	});
+
+process.on('SIGINT', function() {
+	if(fs.existsSync('applist.json')) {
+		fs.unlink('applist.json', function(err) {
+			if(err) {
+				throw err;
+			}
+			else {
+				console.log('applist removed successfully');
+			}
+		});
+	}
+
+	process.exitCode = 0; // calling process.exit(0) will attempt to exit the process asap, even if there are pending async ops
+});

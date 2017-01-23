@@ -2,7 +2,7 @@
 	"name": "sale-bot",
 	"version": "0.1.0",
 	"scripts": {
-		"start": "nodemon app.js"
+		"start": "node updateAppList.js && nodemon saleBot.js"
 	},
 	"dependencies": {
 		"nodemon": "~1.11.0",
