@@ -18,21 +18,22 @@ client.on('ready', function() {
 });
 
 client.on('message', function(msg) {
-	var regexp = /^\!sale[^\w](.+)$/i;
-	var match = msg.content.match(regexp);
+	var match = msg.content.match(/^\!sale[^\w](.+)$/i);
 	var list = masterAppList.applist.apps.app; // i wish valve could update their naming conventions so this isn't so clunky
-	var appid, gameTitle;
+	var appid, inputtedTitle, gameTitle;
 
 	if(match == null) {
 		return;
 	}
 	else {
-		gameTitle = match[1];
+		inputtedTitle = match[1].toLowerCase();
 	}
 
 	for(var i in list) {
-		if(list[i].name.indexOf(gameTitle) > -1) {
+		var moddedGameTitle = (' ' + list[i].name).slice(1).toLowerCase();
+		if(moddedGameTitle.indexOf(inputtedTitle.toLowerCase()) > -1) {
 			appid = list[i].appid;
+			gameTitle = list[i].name;
 			break;
 		}
 	}
