@@ -40,7 +40,7 @@ client.on('message', function(msg) {
 
 	if(appid == null) {
 		if(numTimesFailed < 4) {
-			msg.reply('Game not found, I am currently unable to ignore case; keep that in mind and try again');
+			msg.reply('Game not found, try again');
 		}
 		else {
 			msg.reply('If you\'re going to keep making garbage requests, I won\'t help you');
