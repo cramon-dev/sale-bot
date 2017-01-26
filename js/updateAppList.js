@@ -1,7 +1,7 @@
 var http = require('http');
 var fs = require('fs');
 
-if(!fs.existsSync('../applist.json')) {
+if(!fs.existsSync('applist.json')) {
 	var httpParams = {
 		host: 'api.steampowered.com',
 		path: '/ISteamApps/GetAppList/v0001/',
@@ -9,6 +9,9 @@ if(!fs.existsSync('../applist.json')) {
 	};
 	
 	http.request(httpParams, writeToAppList).end();
+}
+else {
+	console.log('applist already exists');
 }
 
 function writeToAppList(response) {
@@ -20,7 +23,7 @@ function writeToAppList(response) {
 
 	response.on('end', function handleResponse() {
 		try {
-			fs.writeFile('../applist.json', JSON.parse(JSON.stringify(data)), function(err) {
+			fs.writeFile('applist.json', JSON.parse(JSON.stringify(data)), function(err) {
 				if(err) {
 					console.error(err);
 					throw err;
@@ -33,7 +36,5 @@ function writeToAppList(response) {
 		catch (ex) {
 			console.error(ex);
 		}
-
-		//process.exitCode = 0;
 	});
 }

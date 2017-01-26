@@ -1,2 +1,3 @@
 node_modules
 applist.json
+npm-debug.log.*
